@@ -1,17 +1,10 @@
 let table;
 let yAccData;
-let timestampsData;
-let currentIndexData = 0;
+
+let dataPlayer;
 
 let timeSlider;
 let playButton;
-let playbackIsOn = false;
-let playbackTempInactive = false;
-
-let playbackSpeed = 1;
-let playbackStartstamp = 0;
-let playbackStartIndex = 0;
-let playHeadPosition = 0;
 
 function preload(){
 	table = loadTable("data/kanot.csv", "csv", "header");
@@ -21,42 +14,30 @@ function setup() {
 	createCanvas(windowWidth, windowHeight);
 	yAccData = table.getColumn("yAcc");
 	let tempArray = table.getColumn('t');
-	timestampsData = tempArray.map(Number);
+	// timestampsData = tempArray.map(Number);
+
+	dataPlayer = new DataPlayer(tempArray.map(Number));
 
 	timeSlider = createSlider(0, table.getRowCount(), 0, 1);
 	timeSlider.position(600, 600);
-	timeSlider.mousePressed(() => {if(playbackIsOn){playbackTempInactive = true; togglePlayback();}});
-	timeSlider.mouseReleased(() => {if(playbackTempInactive){playbackTempInactive = false; togglePlayback();}});
+	timeSlider.mousePressed(dataPlayer.temporaryPause.bind(dataPlayer));
+	timeSlider.mouseReleased(dataPlayer.releaseTemporaryPause.bind(dataPlayer));
 
 	playButton = createButton(">");
 	playButton.position(500, 600);
-	playButton.mousePressed(togglePlayback);
+	playButton.mousePressed(dataPlayer.togglePlayback.bind(dataPlayer));
 }
 
 function draw() {
-	if(playbackIsOn){
-		let indexJumps = 0;
-		let millisPosition = millis() - playbackStartstamp;
-		playHeadPosition = (playbackSpeed * millisPosition) + timestampsData[playbackStartIndex];
-
-		while(timestampsData[currentIndexData] <= playHeadPosition){
-			currentIndexData++;
-			indexJumps++;
-			if(currentIndexData >= table.getRowCount()){
-				print("resetting playback");
-				resetPlayback();
-				break;
-			}
-		}
-		// print("nr of increments: " + indexJumps);
-		timeSlider.elt.value = currentIndexData;
-	}else{
-		currentIndexData = timeSlider.value();
-	}
-
-
 	background(255);
-	drawBar(300, 400, yAccData[currentIndexData], 1, "y-Acc");
+	dataPlayer.updatePlayhead();
+
+	if(dataPlayer.playbackIsOn){
+		timeSlider.elt.value = dataPlayer.getCurrentIndex();
+	}{
+		dataPlayer.setCurrentIndex(timeSlider.value());
+	}
+	drawBar(300, 400, yAccData[dataPlayer.getCurrentIndex()], 1, "y-Acc");
 }
 
 let barHeight = 400;
@@ -67,18 +48,4 @@ function drawBar(leftx, lowery, value, max, name){
 	rect(leftx, lowery, 25, -height);
 	textSize(32);
 	text(name, leftx-10, lowery+32);
-}
-function resetPlayback(){
-	currentIndexData = 0;
-	playbackStartIndex = 0;
-	playbackStartstamp = millis();
-}
-
-function togglePlayback(){
-	// resetPlayback();
-	if(!playbackIsOn){
-		playbackStartstamp = millis();
-		playbackStartIndex = currentIndexData;
-	}
-	playbackIsOn = !playbackIsOn;
 }
