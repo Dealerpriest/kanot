@@ -35,11 +35,12 @@ function setup() {
 
 	timeSlider = createSlider(0, table.getRowCount()-1, 0, 1);
 	timeSlider.position(600, 600);
+	// timeSlider.size(400, AUTO);
 	timeSlider.mousePressed(dataPlayer.temporaryPause.bind(dataPlayer));
 	timeSlider.mouseReleased(dataPlayer.releaseTemporaryPause.bind(dataPlayer));
 
-	playSpeed = new SlidableVariable('play speed');
-	playSpeed.setPosition(50, 50);
+	playSpeed = new SlidableVariable('play speed', 0, 5, 1);
+	playSpeed.setPosition(800, 615);
 
 	playButton = createButton(">");
 	playButton.position(500, 600);
@@ -48,6 +49,8 @@ function setup() {
 
 function draw() {
 	background(20);
+
+	dataPlayer.setPlaybackSpeed(playSpeed.value);
 
 	dataPlayer.update();
 	if(dataPlayer.playbackIsOn){

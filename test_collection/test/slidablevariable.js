@@ -1,5 +1,5 @@
 class SlidableVariable{
-  constructor(label){
+  constructor(label, minValue, maxValue, startValue){
     this._text = label + ': 0';
 
     this._position = createVector(0,0);
@@ -10,7 +10,7 @@ class SlidableVariable{
     this._isPressed = false;
     this._pressedX = 0;
     this._pressedY = 0;
-    this._valueWhenPressed = 0;
+    this.valueWhenPressed = 0;
     this._maxDistanceWhenDragging = 200;
 
     if(label != undefined){
@@ -19,22 +19,22 @@ class SlidableVariable{
       this._label = '';
     }
 
-    this._value = 0;
+    this._minValue = minValue;
+    this._maxValue = maxValue;
 
-    this._maxValue = 1.0;
-    this._minValue = 0.0;
+    this.value = startValue;
   }
 
   update(){
-    this._text = this._label + ': ' + nfc(this._value, 3);
+    this._text = this._label + ': ' + nfc(this.value, 3);
     this._width = textWidth(this._text);
     this._height = textAscent();
     this._updateHover();
     this._updatePressedState();
     if(this._isPressed){
       let distanceY = this._pressedY - mouseY;
-      let val = this._valueWhenPressed + map(distanceY, 0, this._maxDistanceWhenDragging, 0, this._maxValue);
-      this._value = constrain(val, this._minValue, this._maxValue);
+      let val = this.valueWhenPressed + map(distanceY, 0, this._maxDistanceWhenDragging, 0, this._maxValue);
+      this.value = constrain(val, this._minValue, this._maxValue);
     }
   }
 
@@ -59,7 +59,7 @@ class SlidableVariable{
         //Let's save reference position
         this._pressedX = mouseX;
         this._pressedY = mouseY;
-        this._valueWhenPressed = this._value;
+        this.valueWhenPressed = this.value;
       }
     }else{
       this._isPressed = false;
@@ -73,6 +73,7 @@ class SlidableVariable{
   draw(x, y){
     if(x != undefined && y != undefined){this._position.set(x,y);}
 
+    let revertSize = textSize();
     if(this._hover || this._isPressed){
       textSize(this._textSize * 1.1);
     }else{
@@ -81,8 +82,10 @@ class SlidableVariable{
 
     textAlign(LEFT, BASELINE);
     // rect(this._position.x, this._position.y, this._width, -this._height);
-    // let formattedValue = nfc(this._value, 3);
+    // let formattedValue = nfc(this.value, 3);
     // text(this._label + ': ' + formattedValue, this._position.x, this._position.y);
     text(this._text, this._position.x, this._position.y);
+
+    textSize(revertSize);
   }
 }
