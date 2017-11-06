@@ -1,51 +1,68 @@
 
 class DataPlayer {
   constructor(timestampsArray){
-    this.timestamps = timestampsArray;
-    this.currentIndexData = 0;
-
     this.playbackIsOn = false;
-    this.temporaryPaused = false;
+    this.isUpdated = false;
 
-    this.playbackSpeed = 3;
-    this.playbackStartstamp = 0;
-    this.timestampsStartIndex = 0;
-    this.playHeadPosition = 0;
+    this._timestamps = timestampsArray;
+    this._currentIndex = 0;
+    this._previousIndex = -1;
+
+
+    this._temporaryPaused = false;
+
+    this._playbackSpeed = 3;
+    this._playbackStartstamp = 0;
+    this._timestampsStartIndex = 0;
+    this._playHeadPosition = 0;
   }
 
   getCurrentIndex(){
-    return this.currentIndexData;
+    return this._currentIndex;
   }
 
   setCurrentIndex(index){
-    this.currentIndexData = index;
+    this._previousIndex = this._currentIndex;
+    this._currentIndex = index;
   }
 
-  updatePlayhead(){
+  update(){
     if(this.playbackIsOn){
-      // print("currentIndexData: " + this.currentIndexData);
-  		let millisPosition = millis() - this.playbackStartstamp;
-  		this.playHeadPosition = (this.playbackSpeed * millisPosition) + this.timestamps[this.timestampsStartIndex];
+      // print("_currentIndex: " + this._currentIndex);
+  		let millisPosition = millis() - this._playbackStartstamp;
+  		this._playHeadPosition = (this._playbackSpeed * millisPosition) + this._timestamps[this._timestampsStartIndex];
 
-  		while(this.timestamps[this.currentIndexData] <= this.playHeadPosition){
-  			this.currentIndexData++;
-  			if(this.currentIndexData >= this.timestamps.length){
+      // if(this._timestamps[this._currentIndex] > this._playHeadPosition){
+      //   this.isUpdated = false;
+      //   return;
+      //   ///Nothing to do. Bail out before we corrupt the isUpdated variable!
+      // }
+  		while(this._timestamps[this._currentIndex] <= this._playHeadPosition){
+        // this.isUpdated = true;
+        this._previousIndex = this._currentIndex;
+  			this._currentIndex++;
+  			if(this._currentIndex >= this._timestamps.length){
   				print("resetting playback");
   				this.resetPlayback();
   				break;
   			}
   		}
   	}
+    if(this._currentIndex != this._previousIndex){
+      this.isUpdated = true;
+    }else{
+      this.isUpdated = false;
+    }
   }
 
   setPlaybackSpeed(speed){
-    this.playbackSpeed = speed;
+    this._playbackSpeed = speed;
   }
 
   resetPlayback(){
-  	this.currentIndexData = 0;
-  	this.timestampsStartIndex = 0;
-  	this.playbackStartstamp = millis();
+  	this._currentIndex = 0;
+  	this._timestampsStartIndex = 0;
+  	this._playbackStartstamp = millis();
   }
 
   stopPlayback(){
@@ -66,22 +83,22 @@ class DataPlayer {
     this.playbackIsOn = !(this.playbackIsOn);
 
     if(this.playbackIsOn){
-  		this.playbackStartstamp = millis();
-  		this.timestampsStartIndex = this.currentIndexData;
+  		this._playbackStartstamp = millis();
+  		this._timestampsStartIndex = this._currentIndex;
   	}
   }
 
   temporaryPause(){
     if(this.playbackIsOn){
-      this.temporaryPaused = true;
+      this._temporaryPaused = true;
       this.stopPlayback();
     }
   }
 
   releaseTemporaryPause(){
-    if(this.temporaryPaused){
+    if(this._temporaryPaused){
       this.continuePlayback();
     }
-    this.temporaryPaused = false;
+    this._temporaryPaused = false;
   }
 }
