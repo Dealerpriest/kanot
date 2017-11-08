@@ -8,6 +8,7 @@ let playSpeed;
 let spiderChart;
 let barChart;
 let lineChart;
+let scatterPlot;
 
 function preload(){
 	table = loadTable("data/kanot.csv", "csv", "header");
@@ -31,7 +32,9 @@ function setup() {
 	lineChart = new LineChart(table.columns, table.getArray(), 'UP');
 	lineChart.turnOnColumn(1);
 	lineChart.turnOnColumn(2);
-	lineChart.turnOnColumn(9)
+	lineChart.turnOnColumn(9);
+
+	scatterPlot = new ScatterPlot(table.columns, table.getArray());
 
 	timeSlider = createSlider(0, table.getRowCount()-1, 0, 1);
 	timeSlider.position(600, 600);
@@ -45,10 +48,13 @@ function setup() {
 	playButton = createButton(">");
 	playButton.position(500, 600);
 	playButton.mousePressed(dataPlayer.togglePlayback.bind(dataPlayer));
+	print("setup finished");
 }
 
 function draw() {
 	background(20);
+	textAlign(LEFT, BASELINE);
+	text('fps: ' + nfc(getFrameRate(),2), 20, 20);
 
 	dataPlayer.setPlaybackSpeed(playSpeed.value);
 
@@ -67,13 +73,17 @@ function draw() {
 		barChart.setValues(currentRow);
 		lineChart.setCurrentIndex(dataPlayer.getCurrentIndex());
 
+		// scatterPlot.update();
+
 	}
 
 	playSpeed.update();
 	playSpeed.draw();
 
+	scatterPlot.draw(800, 350);
+
 	lineChart.draw(200,350);
 
 	barChart.draw(200, 600);
-	spiderChart.draw(800, 400);
+	// spiderChart.draw(800, 400);
 }

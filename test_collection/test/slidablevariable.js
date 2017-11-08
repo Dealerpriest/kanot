@@ -10,7 +10,7 @@ class SlidableVariable{
     this._isPressed = false;
     this._pressedX = 0;
     this._pressedY = 0;
-    this.valueWhenPressed = 0;
+    this._valueWhenPressed = 0;
     this._maxDistanceWhenDragging = 200;
 
     if(label != undefined){
@@ -33,7 +33,7 @@ class SlidableVariable{
     this._updatePressedState();
     if(this._isPressed){
       let distanceY = this._pressedY - mouseY;
-      let val = this.valueWhenPressed + map(distanceY, 0, this._maxDistanceWhenDragging, 0, this._maxValue);
+      let val = this._valueWhenPressed + map(distanceY, 0, this._maxDistanceWhenDragging, 0, this._maxValue);
       this.value = constrain(val, this._minValue, this._maxValue);
     }
   }
@@ -59,7 +59,7 @@ class SlidableVariable{
         //Let's save reference position
         this._pressedX = mouseX;
         this._pressedY = mouseY;
-        this.valueWhenPressed = this.value;
+        this._valueWhenPressed = this.value;
       }
     }else{
       this._isPressed = false;

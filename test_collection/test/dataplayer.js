@@ -29,6 +29,7 @@ class DataPlayer {
   update(){
     if(this.playbackIsOn){
       // print("_currentIndex: " + this._currentIndex);
+      //TODO: Make the playhead update independently in each call to update. So that changing playback speed doesn't fuck up the playback.
   		let millisPosition = millis() - this._playbackStartstamp;
   		this._playHeadPosition = (this._playbackSpeed * millisPosition) + this._timestamps[this._timestampsStartIndex];
 
