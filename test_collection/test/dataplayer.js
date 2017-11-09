@@ -11,10 +11,12 @@ class DataPlayer {
 
     this._temporaryPaused = false;
 
-    this._playbackSpeed = 3;
+    this._updateStamp = millis();
+    // this._initialTimestamp =
+    this._playbackSpeed = 1;
     this._playbackStartstamp = 0;
     this._timestampsStartIndex = 0;
-    this._playHeadPosition = 0;
+    this._playHeadPosition = this._timestamps[0];
   }
 
   getCurrentIndex(){
@@ -24,14 +26,24 @@ class DataPlayer {
   setCurrentIndex(index){
     this._previousIndex = this._currentIndex;
     this._currentIndex = index;
+    this._playHeadPosition = this._timestamps[index];
   }
 
+  // NOTE: Current implementation drifts a bit. 8ms for one dataset when speed factor was 1.0. This is probably acceptable in the current context.
+  // We want the speed factor to be able to be updated during playback, and current implementation allows that.
+  // We could implement a behaviour where the reference timestamp is saved only when we update speed factor. But that's for laterzz...
   update(){
     if(this.playbackIsOn){
-      // print("_currentIndex: " + this._currentIndex);
-      //TODO: Make the playhead update independently in each call to update. So that changing playback speed doesn't fuck up the playback.
-  		let millisPosition = millis() - this._playbackStartstamp;
-  		this._playHeadPosition = (this._playbackSpeed * millisPosition) + this._timestamps[this._timestampsStartIndex];
+      let deltaMillis = millis() - this._updateStamp;
+      this._updateStamp = millis();
+      // print(deltaMillis);
+
+      let deltaPlayhead = deltaMillis * this._playbackSpeed;
+      // print(deltaPlayhead);
+      this._playHeadPosition += deltaPlayhead;
+
+  		// let millisPosition = millis() - this._playbackStartstamp;
+  		// this._playHeadPosition = (this._playbackSpeed * millisPosition) + firstTimestamp;
 
       // if(this._timestamps[this._currentIndex] > this._playHeadPosition){
       //   this.isUpdated = false;
@@ -62,8 +74,10 @@ class DataPlayer {
 
   resetPlayback(){
   	this._currentIndex = 0;
-  	this._timestampsStartIndex = 0;
+  	// this._timestampsStartIndex = 0;
   	this._playbackStartstamp = millis();
+
+    this._playHeadPosition = this._timestamps[0];
   }
 
   stopPlayback(){
@@ -84,8 +98,9 @@ class DataPlayer {
     this.playbackIsOn = !(this.playbackIsOn);
 
     if(this.playbackIsOn){
-  		this._playbackStartstamp = millis();
-  		this._timestampsStartIndex = this._currentIndex;
+  		// this._playbackStartstamp = millis();
+  		// this._timestampsStartIndex = this._currentIndex;
+      this._updateStamp = millis();
   	}
   }
 

@@ -1,10 +1,11 @@
+// TODO: implement return to default on double click
 class SlidableVariable{
   constructor(label, minValue, maxValue, startValue){
     this._text = label + ': 0';
 
     this._position = createVector(0,0);
     this._width = textWidth(this._text);
-    this._height;
+    this._height = textAscent();
     this._textSize = textSize();
     this._hover = false;
     this._isPressed = false;

@@ -10,6 +10,9 @@ let barChart;
 let lineChart;
 let scatterPlot;
 
+let textBox;
+let dropZone;
+
 function preload(){
 	table = loadTable("data/kanot.csv", "csv", "header");
 }
@@ -42,6 +45,9 @@ function setup() {
 	timeSlider.mousePressed(dataPlayer.temporaryPause.bind(dataPlayer));
 	timeSlider.mouseReleased(dataPlayer.releaseTemporaryPause.bind(dataPlayer));
 
+	textBox = new DraggableTextBox(60, 250);
+	dropZone = new DropZone(80,500, 60, 25);
+
 	playSpeed = new SlidableVariable('play speed', 0, 5, 1);
 	playSpeed.setPosition(800, 615);
 
@@ -61,7 +67,7 @@ function draw() {
 	dataPlayer.update();
 	if(dataPlayer.playbackIsOn){
 		timeSlider.elt.value = dataPlayer.getCurrentIndex();
-	}{
+	}else{
 		dataPlayer.setCurrentIndex(timeSlider.value());
 	}
 
@@ -76,6 +82,19 @@ function draw() {
 		// scatterPlot.update();
 
 	}
+
+	rect(60-textWidth(' '), 120 - textAscent(), textWidth(' xqytest '), textAscent() + textDescent());
+	text("xqytest", 60, 120);
+
+	rect(140, 120 - textAscent(), textWidth('xqytest'), textSize());
+	text("xqytest", 140, 120);
+	// ellipse(120,120,10,10);
+
+	textBox.update();
+	textBox.draw();
+	textBox.checkIfInDropZone(dropZone);
+
+	dropZone.draw();
 
 	playSpeed.update();
 	playSpeed.draw();
