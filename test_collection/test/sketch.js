@@ -11,7 +11,10 @@ let lineChart;
 let scatterPlot;
 
 let textBox;
+let textBox2;
+
 let dropZone;
+let dropZone2;
 
 function preload(){
 	table = loadTable("data/kanot.csv", "csv", "header");
@@ -46,7 +49,9 @@ function setup() {
 	timeSlider.mouseReleased(dataPlayer.releaseTemporaryPause.bind(dataPlayer));
 
 	textBox = new DraggableTextBox(60, 250);
+	textBox2 = new DraggableTextBox(60, 280);
 	dropZone = new DropZone(80,500, 60, 25);
+	dropZone2 = new DropZone(80,540, 60, 25);
 
 	playSpeed = new SlidableVariable('play speed', 0, 5, 1);
 	playSpeed.setPosition(800, 615);
@@ -92,9 +97,21 @@ function draw() {
 
 	textBox.update();
 	textBox.draw();
-	textBox.checkIfInDropZone(dropZone);
+	// textBox.checkIfInDropZone(dropZone);
+	// textBox.checkIfInDropZone(dropZone2);
+
+	if(DraggableTextBox.mostRecentlyDragged !== undefined){
+		DraggableTextBox.mostRecentlyDragged.checkIfInDropZone(dropZone);
+		DraggableTextBox.mostRecentlyDragged.checkIfInDropZone(dropZone2);
+	}
+
+	textBox2.update();
+	textBox2.draw();
+	// textBox2.checkIfInDropZone(dropZone);
+	// textBox2.checkIfInDropZone(dropZone2);
 
 	dropZone.draw();
+	dropZone2.draw();
 
 	playSpeed.update();
 	playSpeed.draw();
@@ -105,4 +122,14 @@ function draw() {
 
 	barChart.draw(200, 600);
 	// spiderChart.draw(800, 400);
+}
+
+function mousePressed(){
+	textBox.updatePressedState();
+	textBox2.updatePressedState();
+}
+
+function mouseReleased(){
+	textBox.updatePressedState();
+	textBox2.updatePressedState();
 }

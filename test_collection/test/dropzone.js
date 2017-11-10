@@ -1,10 +1,20 @@
 class DropZone {
   constructor(x, y, width, height){
+    this.value = undefined;
     this.position = createVector(x, y);
     this._width = width;
     this._height = height;
     this.dropMargin = 17;
+    this.occupied = false;
   }
+
+  // checkIfOccupiedBy(draggableObject){
+  //     draggableObject.checkIfInDropZone(this);
+  // }
+
+  // setValue(value){
+  //   this.value = value
+  // }
 
   draw(x, y){
     //Trying to make position optional parameter

@@ -26,22 +26,33 @@ class DraggableTextBox{
   //remember to keep acceptable drop margins to less then half the size of the object dropped.
   //So we don't get weird behaviour of the object being within several drop zone simultaneously
   checkIfInDropZone(dropZone){
-    if(!this._isPressed){
-      return;
-    }
     let distance = this._draggedPosition.dist(dropZone.position);
+    // if(dropZone.occupied){
+    //   return;
+    // }
     if(distance < dropZone.dropMargin){
-      this._snappedToDropZone = true;
-      this._currentPosition = dropZone.position;
-      // print("snapped");
-    }else{
-      this._snappedToDropZone = false;
+      if(!dropZone.occupied){
+        if(!this._isPressed){
+          dropZone.occupied = true;
+          // dropZone.setValue(this._value);
+          print("dropped");
+          return true;
+        }
+        this._snappedToDropZone = dropZone;
+        this._currentPosition = dropZone.position;
+        print("snapped");
+      }
+    }
+    else if(this._snappedToDropZone === dropZone){
+      print("released");
+      this._snappedToDropZone = undefined;
+      dropZone.occupied = false;
     }
   }
 
   update(){
     this._updateHover();
-    this._updatePressedState();
+    // this._updatePressedState();
     if(this._isPressed){
       let deltaMouseVector = p5.Vector.sub(createVector(mouseX, mouseY), this._pressedMousePosition);
       let calculatedPosition = p5.Vector.add(this._pressedPosition, deltaMouseVector);
@@ -87,7 +98,7 @@ class DraggableTextBox{
     }
   }
 
-  _updatePressedState(){
+  updatePressedState(){
     if(mouseIsPressed){
       if(this._hover && !this._isPressed){
         //We are in a transition
@@ -95,17 +106,17 @@ class DraggableTextBox{
         //Let's save reference position
         this._pressedMousePosition.set(mouseX, mouseY);
         this._pressedPosition = this._currentPosition;//.copy();
+        DraggableTextBox.mostRecentlyDragged = this;
         print("pressed");
       }
     }else{
       if(this._isPressed){
         //transition from pressed state
-        if(!this._snappedToDropZone){
-          // this._currentPosition = this._homePosition;
-        }
         this._isPressed = false;
+        // DraggableTextBox.currentlyDragged = undefined;
       }
-
     }
   }
 }
+
+DraggableTextBox.mostRecentlyDragged = undefined;
