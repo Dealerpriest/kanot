@@ -1,0 +1,25 @@
+{
+  "name": "kanot",
+  "version": "1.0.0",
+  "description": "canoe sensor data visualization project",
+  "main": "index.html",
+  "dependencies": {
+    "eslint": "^4.11.0"
+  },
+  "devDependencies": {
+    "eslint-config-p5js": "^1.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dealerpriest/kanot.git"
+  },
+  "author": "Gunnar Oledal (RISE Interactive)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dealerpriest/kanot/issues"
+  },
+  "homepage": "https://github.com/Dealerpriest/kanot#readme"
+}
