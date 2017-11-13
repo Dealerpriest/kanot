@@ -1,5 +1,5 @@
 class LineChart {
-  constructor(labels, data, orientation){
+  constructor(labels, data, orientation, minValues, maxValues){
     this._nrOfVariables = labels.length;
     this._labels = labels;
     this._orientation = orientation;
@@ -9,14 +9,12 @@ class LineChart {
     this._nrOfTicksX = 10;
     this._nrOfTicksY = 10;
     this._maxYAxis = 5;
-    this._maxXAxis = 10;
-    // this._currentValues = [];
-    this._minValues = [];
-    this._maxValues = [];
+    // this._maxXAxis = 10;
+    
+    this._minValues = minValues;
+    this._maxValues = maxValues;
     this._activeLabels = [];
     for (let i = 0; i < this._nrOfVariables; i++) {
-      this._minValues[i] = 0;
-      this._maxValues[i] = 5;
       this._activeLabels[i] = false;
     }
     this._currentIndex = 0;
@@ -27,13 +25,13 @@ class LineChart {
   }
 
   setCurrentIndex(index){
-    this._currentIndex = index
+    this._currentIndex = index;
   }
 
   draw(x, y){
     noFill();
 
-    let nrOfDataPoints = this._includedValuesBehind + this._includedValuesInFront
+    let nrOfDataPoints = this._includedValuesBehind + this._includedValuesInFront;
     let currentRowXPos = x +this._includedValuesBehind / nrOfDataPoints * this._width;
     line(currentRowXPos, y, currentRowXPos, y - this._height);
 
@@ -45,7 +43,7 @@ class LineChart {
           let dataIndex = this._currentIndex + row;
           if(dataIndex >= 0 && dataIndex < this._data.length){
             let value = this._data[dataIndex][column];
-            let isCurrent = (dataIndex == this._currentIndex);
+            // let isCurrent = (dataIndex == this._currentIndex);
 
             let scaledValue = map(value, this._minValues[column], this._maxValues[column], 0, this._height);
             vertex(x + (row + this._includedValuesBehind) * this._width / nrOfDataPoints, y - scaledValue);
@@ -65,7 +63,7 @@ class LineChart {
     let tickIncrement = this._height / this._nrOfTicksY;
     for (var i = 0; i < this._nrOfTicksY; i++) {
       let axisValue = i * this._maxYAxis/this._nrOfTicksY;
-      let currentYPos = y - i * tickIncrement
+      let currentYPos = y - i * tickIncrement;
       text(axisValue, x-10, currentYPos);
       line(x-5, currentYPos, x, currentYPos);
     }

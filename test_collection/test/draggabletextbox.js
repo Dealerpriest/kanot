@@ -1,8 +1,14 @@
 class DraggableTextBox{
-  constructor(x, y){
+  constructor(x, y, value, text){
     //data stuff
-    this._text = 'test-text';
-    this._value = undefined;
+    if(text !== undefined){
+      this._text = text;
+    }else{
+      this._text = 'no name';
+    }
+
+    this._value = value;
+
 
     //position stuff
     this._width = textWidth(' ' + this._text + ' ');
@@ -23,10 +29,11 @@ class DraggableTextBox{
     this._textSize = textSize();
   }
 
+  //TODO: Fix (and find) the weird bug that rarely makes a dropZone stop working
   //remember to keep acceptable drop margins to less then half the size of the object dropped.
   //So we don't get weird behaviour of the object being within several drop zone simultaneously
   checkIfInDropZone(dropZone){
-    let distance = this._draggedPosition.dist(dropZone.position);
+    let distance = this._draggedPosition.dist(dropZone.dropPosition);
     // if(dropZone.occupied){
     //   return;
     // }
@@ -34,19 +41,20 @@ class DraggableTextBox{
       if(!dropZone.occupied){
         if(!this._isPressed){
           dropZone.occupied = true;
-          // dropZone.setValue(this._value);
-          print("dropped");
+          dropZone.value = this._value;
+          print('dropped');
           return true;
         }
         this._snappedToDropZone = dropZone;
-        this._currentPosition = dropZone.position;
-        print("snapped");
+        this._currentPosition = dropZone.dropPosition;
+        print('attached');
       }
     }
     else if(this._snappedToDropZone === dropZone){
-      print("released");
+      print('detached');
       this._snappedToDropZone = undefined;
       dropZone.occupied = false;
+      dropZone.value = undefined;
     }
   }
 
@@ -68,8 +76,6 @@ class DraggableTextBox{
         this._currentPosition = this._homePosition;
       }else{
         let goalVector = p5.Vector.sub(this._homePosition, this._currentPosition);
-        // print(goalVector);
-        // let dist = goalVector.mag();
         goalVector.setMag(increment);
         this._currentPosition.add(goalVector);
       }
@@ -107,7 +113,7 @@ class DraggableTextBox{
         this._pressedMousePosition.set(mouseX, mouseY);
         this._pressedPosition = this._currentPosition;//.copy();
         DraggableTextBox.mostRecentlyDragged = this;
-        print("pressed");
+        print('pressed');
       }
     }else{
       if(this._isPressed){

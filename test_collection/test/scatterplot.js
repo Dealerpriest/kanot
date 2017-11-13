@@ -1,27 +1,37 @@
+/* globals DropZone */
 class ScatterPlot{
-  constructor(labels, data){
+  constructor(labels, data, minValues, maxValues){
     //data parameters
+    this.legendDropZones = [];
     this._nrOfVariables = labels.length;
     this._labels = labels;
     this._inData = data;
     this._currentData = {};
+    this._minValues = minValues;
+    this._maxValues = maxValues;
+    // for (let i = 0; i < this._nrOfVariables; i++) {
+    //   this._minValues[i] = -0.2;
+    //   this._maxValues[i] = 0.2;
+    // }
 
     if(this._nrOfVariables < 2){
-      print("two few columns in data. Need at least two for z and y axis");
+      print('two few columns in data. Need at least two for z and y axis');
       throw 'two few columns in data. Need at least two for z and y axis';
-      return;
     }
     this._xVariable = 0;
     this._yVariable = 1;
-    this._sizeVariable = undefined
+    this._sizeVariable = undefined;
     this._colorVariable = undefined;
-    this._currentData = {scaledXValue: [], scaledYValue: [], scaledSizeValue: [], scaledColorValue: []};
 
-    this._minValues = [];
-    this._maxValues = [];
-    for (let i = 0; i < this._nrOfVariables; i++) {
-      this._minValues[i] = -0.2;
-      this._maxValues[i] = 0.2;
+    this._previousXVariable = undefined;
+    this._previousYVariable = undefined;
+    this._previousSizeVariable = undefined;
+    this._previousColorVariable = undefined;
+
+    this._currentData = {scaledXValue: [], scaledYValue: [], scaledSizeValue: [], scaledColorValue: []};
+    
+    for (var i = 0; i < 4; i++) {
+      this.legendDropZones[i] = new DropZone(0,0, 100, 30);
     }
 
     //drawing parameters
@@ -45,13 +55,33 @@ class ScatterPlot{
   }
 
   update(){
+    this._xVariable = this.legendDropZones[0].value;
+    this._yVariable = this.legendDropZones[1].value;
+    this._sizeVariable = this.legendDropZones[2].value;
+    this._colorVariable = this.legendDropZones[3].value;
+
     // print("updating scatterPlot");
+    if(
+      this._xVariable === this._previousXVariable
+      && this._yVariable === this._previousYVariable
+      && this._sizeVariable === this._previousSizeVariable
+      && this._colorVariable === this._previousColorVariable
+    ){
+      return;
+    }
+    print('updating scatterplot');
+
+    this._previousXVariable = this._xVariable;
+    this._previousYVariable = this._yVariable;
+    this._previousSizeVariable = this._sizeVariable;
+    this._previousColorVariable = this._colorVariable;
+
     for (var i = 0; i < this._inData.length; i++) {
       let currentRow = this._inData[i];
 
       if(this._xVariable === undefined || this._yVariable === undefined){
         print('x or y axis can\'t be undefined');
-        throw('x or y axis can\'t be undefined');
+        //throw('x or y axis can\'t be undefined');
         return;
       }
       let scaledXValue = this._getScaledValue(currentRow, this._xVariable, this._width);
@@ -63,14 +93,14 @@ class ScatterPlot{
         let scaledSizeValue = this._getScaledValue(currentRow, this._sizeVariable, this._maxRadius);
         this._currentData.scaledSizeValue[i] = scaledSizeValue;
       }else{
-        this._currentData.scaledSizeValue = undefined;
+        this._currentData.scaledSizeValue = [];
       }
 
       if(this._colorVariable !== undefined){
         let scaledColorValue = this._getScaledValue(currentRow, this._colorVariable, 255);
         this._currentData.scaledColorValue[i] = scaledColorValue;
       }else{
-        this._currentData.scaledColorValue = undefined;
+        this._currentData.scaledColorValue = [];
       }
     }
 
@@ -80,6 +110,21 @@ class ScatterPlot{
   draw(x, y){
     // this._drawToRenderer(5, 5);
     image(this._renderer, x - this._margin, y - this._height - this._margin);
+
+    textAlign(RIGHT, TOP);
+    let legendPosition = createVector(x + this._width + this._margin, y - this._height);
+    let verticalIncrement = 70;
+    text('X:', legendPosition.x, legendPosition.y);
+    this.legendDropZones[0].draw(legendPosition.x, legendPosition.y);
+    legendPosition.y += verticalIncrement;
+    text('Y:', legendPosition.x, legendPosition.y);
+    this.legendDropZones[1].draw(legendPosition.x, legendPosition.y);
+    legendPosition.y += verticalIncrement;
+    text('Size:', legendPosition.x, legendPosition.y);
+    this.legendDropZones[2].draw(legendPosition.x, legendPosition.y);
+    legendPosition.y += verticalIncrement;
+    text('Color:', legendPosition.x, legendPosition.y);
+    this.legendDropZones[3].draw(legendPosition.x, legendPosition.y);
   }
 
   _drawToRenderer(){
@@ -94,7 +139,7 @@ class ScatterPlot{
       return;
     }
     for (var i = 0; i < this._currentData.scaledXValue.length; i++) {
-      if(this._currentData.scaledSizeValue !== undefined){
+      if(this._currentData.scaledSizeValue.length !== 0){
         this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], this._currentData.scaledSizeValue[i]);
       }else{
         this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], 5);
@@ -119,7 +164,7 @@ class ScatterPlot{
     let yValueIncrement = (this._maxValues[this._yVariable] - this._minValues[this._yVariable])/this._nrOfTicksY;
     for (var i = 0; i <= this._nrOfTicksY; i++) {
       let axisValue = this._minValues[this._yVariable] + i * yValueIncrement;
-      let currentYPos = - i * yTickIncrement
+      let currentYPos = - i * yTickIncrement;
       this._renderer.text(nfc(axisValue,2), -10, currentYPos);
       this._renderer.line(-5, currentYPos, 0, currentYPos);
     }
@@ -127,9 +172,9 @@ class ScatterPlot{
     this._renderer.textAlign(CENTER, TOP);
     let xTickIncrement = this._width / this._nrOfTicksX;
     let xValueIncrement = (this._maxValues[this._xVariable] - this._minValues[this._xVariable])/this._nrOfTicksX;
-    for (var i = 0; i <= this._nrOfTicksX; i++) {
-      let axisValue = this._minValues[this._xVariable] + i * xValueIncrement;
-      let currentXPos = i * xTickIncrement
+    for (var j = 0; j <= this._nrOfTicksX; j++) {
+      let axisValue = this._minValues[this._xVariable] + j * xValueIncrement;
+      let currentXPos = j * xTickIncrement;
       this._renderer.text(nfc(axisValue,2), currentXPos, 10);
       this._renderer.line(currentXPos, 0, currentXPos, 5);
     }

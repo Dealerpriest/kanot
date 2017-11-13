@@ -9,6 +9,9 @@
         "p5js/dom",
         "p5js/sound"
     ],
+    "globals": {
+        "p5": false
+    },
     "rules": {
         "indent": [
             "error",

@@ -2,24 +2,27 @@ class DropZone {
   constructor(x, y, width, height){
     this.value = undefined;
     this.position = createVector(x, y);
+    this.dropPosition = createVector(x+5, y+5);
     this._width = width;
     this._height = height;
     this.dropMargin = 17;
     this.occupied = false;
   }
 
-  // checkIfOccupiedBy(draggableObject){
-  //     draggableObject.checkIfInDropZone(this);
-  // }
-
-  // setValue(value){
-  //   this.value = value
-  // }
+  setPosition(x, y){
+    if(x != undefined && y != undefined){
+      this.position.set(x,y);
+      this.dropPosition.set(x+5,y+5);
+    }
+  }
 
   draw(x, y){
     //Trying to make position optional parameter
-    if(x != undefined && y != undefined){this.position.set(x,y);}
+    if(x != undefined && y != undefined){
+      this.position.set(x,y);
+      this.dropPosition.set(x+5,y+5);
+    }
 
-    rect(this.position.x-5, this.position.y-5, this._width, this._height);
+    rect(this.position.x, this.position.y, this._width, this._height);
   }
 }

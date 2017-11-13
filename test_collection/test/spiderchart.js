@@ -1,10 +1,10 @@
 
 class SpiderChart {
-  constructor(labels){
+  constructor(labels, minValues, maxValues){
     this._nrOfVariables = labels.length;
     this._values = [];
-    this._minValues = [];
-    this._maxValues = [];
+    this._minValues = minValues;
+    this._maxValues = maxValues;
     this._labels = labels;
 
     this._radius = 100;
@@ -17,8 +17,8 @@ class SpiderChart {
       this._points[i] = p5.Vector.fromAngle(radians(angle));
       angle += angleIncrement;
 
-      this._maxValues[i] = 10;
-      this._minValues[i] = -10;
+      // this._maxValues[i] = 10;
+      // this._minValues[i] = -10;
     }
     // this._updateVectorMagnitudes();
   }
