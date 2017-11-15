@@ -1,6 +1,6 @@
 
 class Bar{
-  constructor(minValue, maxValue, orientation, maxLength){
+  constructor(minValue, maxValue, orientation, maxLength, colorObject){
     this._value = 0;
     this._position = createVector(0,0);
 
@@ -8,6 +8,12 @@ class Bar{
     this._maxValue = maxValue;
     this._orientation = orientation;
     this._maxLength = maxLength;
+    
+    if(colorObject !== undefined){
+      this._color = colorObject;
+    }else{
+      this._color = color(255);
+    }
 
     this._length;
   }
@@ -25,11 +31,14 @@ class Bar{
     //Trying to make position optional parameter
     if(x != undefined && y != undefined){this._position.set(x,y);}
 
+    fill(this._color);
+    noStroke();
+
     let thickness = 10;
     if(this._orientation == 'UP'){
-      rect(this._position.x, this._position.y, thickness, this._length);
-    }else if(this._orientation == 'DOWN'){
       rect(this._position.x, this._position.y, thickness, -this._length);
+    }else if(this._orientation == 'DOWN'){
+      rect(this._position.x, this._position.y, thickness, this._length);
     }else if(this._orientation == 'LEFT'){
       rect(this._position.x, this._position.y, -this._length, thickness);
     }else if(this._orientation == 'RIGHT'){

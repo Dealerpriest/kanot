@@ -1,5 +1,5 @@
 class DropZone {
-  constructor(x, y, width, height){
+  constructor(x, y, width, height, colorObject){
     this.value = undefined;
     this.position = createVector(x, y);
     this.dropPosition = createVector(x+5, y+5);
@@ -7,6 +7,14 @@ class DropZone {
     this._height = height;
     this.dropMargin = 17;
     this.occupied = false;
+    this._color = color(255);
+    if(colorObject !== undefined){
+      this._color = colorObject;
+    }
+  }
+
+  setColor(color){
+    this._color = color;
   }
 
   setPosition(x, y){

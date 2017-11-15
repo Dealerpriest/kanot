@@ -1,5 +1,5 @@
 class DraggableTextBox{
-  constructor(x, y, value, text){
+  constructor(x, y, value, text, colorObject){
     //data stuff
     if(text !== undefined){
       this._text = text;
@@ -27,6 +27,9 @@ class DraggableTextBox{
 
     //drawing stuff
     this._textSize = textSize();
+    if(colorObject !== undefined){
+      this._color = colorObject;
+    }
   }
 
   //TODO: Fix (and find) the weird bug that rarely makes a dropZone stop working
@@ -83,12 +86,29 @@ class DraggableTextBox{
   }
 
   draw(){
-    rect(this._currentPosition.x, this._currentPosition.y, this._width, this._height);
-    text(this._text, this._currentPosition.x + this._textPositionOffset.x, this._currentPosition.y + this._textPositionOffset.y);
+    push();
+    translate(this._currentPosition.x, this._currentPosition.y);
+    if(this._hover || this._isPressed){
+      scale(1.2);
+    }
+    stroke(this._color);
+    noFill();
+    // rect(this._currentPosition.x, this._currentPosition.y, this._width, this._height);
+    rect(0, 0, this._width, this._height);
+    noStroke();
+    fill(this._color);
+    textAlign(LEFT, BASELINE);
+    // text(this._text, this._currentPosition.x + this._textPositionOffset.x, this._currentPosition.y + this._textPositionOffset.y);
+    text(this._text, this._textPositionOffset.x, this._textPositionOffset.y);
+    pop();
   }
 
   setHomePosition(x, y){
     this._homePosition.set(x,y);
+  }
+
+  setColor(colorObject){
+    this._color = colorObject;
   }
 
   _updateHover(){

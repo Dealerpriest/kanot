@@ -1,5 +1,5 @@
 class BarChart {
-  constructor(labels, thickness, orientation, maxLength){
+  constructor(labels, thickness, orientation, maxLength, minValues, maxValues, colors){
     this._nrOfVariables = labels.length;
     this._labels = labels;
     this._thickness = thickness;
@@ -8,15 +8,20 @@ class BarChart {
 
     this._width = 200;
     this._values = [];
-    this._minValues = [];
-    this._maxValues = [];
+    this._minValues = minValues;
+    this._maxValues = maxValues;
     this._bars = [];
+
+    this._colors = [];
+    if(colors !== undefined){
+      this._colors = colors;
+    }
 
 
     for (let i = 0; i < this._nrOfVariables; i++) {
-      this._minValues[i] = 0;
-      this._maxValues[i] = 10;
-      this._bars[i] = new Bar(this._minValues[i], this._maxValues[i], this._orientation, this._maxLength);
+      // this._minValues[i] = 0;
+      // this._maxValues[i] = 10;
+      this._bars[i] = new Bar(this._minValues[i], this._maxValues[i], this._orientation, this._maxLength, this._colors[i]);
     }
   }
 
