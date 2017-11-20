@@ -49,10 +49,12 @@ class LineChart {
     stroke(foregroundColor);
     line(currentRowXPos, this._position.y, currentRowXPos, this._position.y - this._height);
 
+    push();
     stroke(255, 0, 255);
     for (let i = 0; i < this._activeVariables.length; i++) {
       let column = this._activeVariables[i];
       stroke(this._colors[column]);
+      strokeWeight(2);
       beginShape();
       for (let row = -this._includedValuesBehind; row < this._includedValuesInFront; row++) {
         let dataIndex = this._currentIndex + row;
@@ -66,6 +68,7 @@ class LineChart {
       }
       endShape();
     }
+    pop();
 
     this._drawAxis(this._position.x, this._position.y);
 

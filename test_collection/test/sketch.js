@@ -1,4 +1,6 @@
 let table;
+let tableDeltaVPos;
+let tableDeltaVNeg;
 let minValues = [];
 let maxValues = [];
 let currentRow;
@@ -30,6 +32,8 @@ let variableBank = [];
 
 function preload(){
   table = loadTable('data/kanot.csv', 'csv', 'header');
+  tableDeltaVPos = loadTable('data/kanotdeltavpos.csv', 'csv', 'header');
+  tableDeltaVNeg = loadTable('data/kanotdeltavneg.csv', 'csv', 'header');
 }
 
 function setup() {
@@ -37,8 +41,41 @@ function setup() {
   let timestampsAsStrings = table.getColumn('t');
   dataPlayer = new DataPlayer(timestampsAsStrings.map(Number));
 
+  table.addColumn(tableDeltaVPos.columns[1]);
+  table.addColumn(tableDeltaVNeg.columns[1]);
+
+  let deltaVPosRowIndex = 0;
+  // let currentDeltaVPosRow = tableDeltaVPos.getRow(deltaVPosRowIndex);
+
+  let deltaVNegRowIndex = 0;
+  // let currentDeltaVNegRow = tableDeltaVNeg.getRow(deltaVNegRowIndex);
+  for(let mainTableRowIndex = 0; mainTableRowIndex < table.getRowCount(); mainTableRowIndex++){
+    let currentMainRow = table.getRow(mainTableRowIndex);
+    
+    let value = undefined
+    if(deltaVPosRowIndex < tableDeltaVPos.getRowCount() && Number(currentMainRow.get('t')) === Number(tableDeltaVPos.get(deltaVPosRowIndex, 't')) ){
+
+      // print('adding delta v pos value to main table');
+      // currentMainRow.set(tableDeltaVPos.columns[1], tableDeltaVPos.get(deltaVPosRowIndex, 1));
+      value = tableDeltaVPos.get(deltaVPosRowIndex, 1);
+      deltaVPosRowIndex++;
+    }
+    currentMainRow.set(tableDeltaVPos.columns[1], value);
+
+    value = undefined;
+    if(deltaVNegRowIndex < tableDeltaVNeg.getRowCount() && Number(currentMainRow.get('t')) === Number(tableDeltaVNeg.get(deltaVNegRowIndex, 't')) ){
+      // print('adding delta v neg value to main table');
+      // currentMainRow.set(tableDeltaVNeg.columns[1], tableDeltaVNeg.get(deltaVNegRowIndex, 1));
+      value = tableDeltaVNeg.get(deltaVNegRowIndex, 1)
+      deltaVNegRowIndex++;
+    }
+    currentMainRow.set(tableDeltaVNeg.columns[1], value);
+  }
+
+  print('finished adding values to table');
+
   //after we've given the timestamps to the dataplayer, we remove them from our table.
-  table.removeColumn('t');
+  // table.removeColumn('t');
   //Alos remove some other fucked up stuff (the other timestamps)
   table.removeColumn('phoneAccX');
   table.removeColumn('phoneAccY');
@@ -50,6 +87,9 @@ function setup() {
 
   table.removeColumn('gpsTsp');
   table.removeColumn('phoneTstmp');
+
+  table.removeColumn('DeltaVPos');
+  table.removeColumn('DeltaVNeg');
 
   print(table.columns);
   calculateMinMax(table);
@@ -80,13 +120,14 @@ function setup() {
   let variableBankPosition = createVector(variableBankStartX, yPositionRibbon + 5);
   for (let i = 0; i < table.columns.length; i++) {
     let name = table.columns[i];
-    variableBank[i] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, variableColors[i]);
-    variableBankPosition.x += (variableBank[i]._width + xSpacing);
+    variableBank[i] = [];
+    variableBank[i][0] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, variableColors[i]);
+    variableBankPosition.x += (variableBank[i][0]._width + xSpacing);
   }
 
   lineChart = new LineChart(table.columns, table.getArray(), minValues, maxValues, 'UP', 100, 450, variableColors);
   lineChart.turnOnColumn(1);
-  // lineChart.turnOnColumn(2);
+  lineChart.turnOnColumn(2);
   lineChart.turnOnColumn(6);
 
 
@@ -127,6 +168,7 @@ function draw() {
   }
 
   if(dataPlayer.isUpdated){
+    print('dataPlayer updated');
     currentRow = table.getRow(dataPlayer.getCurrentIndex()).arr;
 
     spiderChart.setValues(currentRow);
@@ -147,12 +189,27 @@ function draw() {
   // text('xqytest', 140, 120);
   // ellipse(120,120,10,10);
 
-  variableBank.forEach( (element) => {element.update();});
-  variableBank.forEach((element) => {element.draw();});
+  // This is where we handle our variable boxes. We create a new one if all boxes for a variable are in use. 
+  // If we have more than one that is not in use we remove one.
+  variableBank.forEach( (boxArray) => {
+    let nrOfUnusedBoxes = 0;
+    for(let i = 0; i < boxArray.length; i++){
+      boxArray[i].update();
+      boxArray[i].draw();
+      nrOfUnusedBoxes += !boxArray[i].dropped;
+    }
+    if(nrOfUnusedBoxes == 0){
+      //ugly to use 'private' variables but fuck it.
+      boxArray.push(new DraggableTextBox(boxArray[0]._homePosition.x, boxArray[0]._homePosition.y, boxArray[0]._value, boxArray[0]._text, boxArray[0]._color));
+    }else if(nrOfUnusedBoxes >= 2){
+      boxArray.pop();
+    }
+  });
 
   if(DraggableTextBox.mostRecentlyDragged !== undefined){
     for (var i = 0; i < scatterPlot.legendDropZones.length; i++) {
       DraggableTextBox.mostRecentlyDragged.checkIfInDropZone(scatterPlot.legendDropZones[i]);
+
     }
   }
 
@@ -185,14 +242,13 @@ function mousePressed(){
     var sel = window.getSelection();
     sel.removeAllRanges();
   }
-  // textBox.updatePressedState();
-  // textBox2.updatePressedState();
-  // textBox3.updatePressedState();
-  // textBox4.updatePressedState();
-  // variableBank.forEach(textBox => {
-  //   textBox.updatePressedState();
-  // });
-  variableBank.forEach((element) => {element.updatePressedState();});
+
+  // variableBank.forEach((element) => {element.updatePressedState();});
+  variableBank.forEach( (element) => {
+    element.forEach( (draggableBox) => {
+      draggableBox.updatePressedState();
+    });
+  });
   // return false;
 }
 
@@ -204,11 +260,13 @@ function mouseReleased(){
     var sel = window.getSelection();
     sel.removeAllRanges();
   }
-  // textBox.updatePressedState();
-  // textBox2.updatePressedState();
-  // textBox3.updatePressedState();
-  // textBox4.updatePressedState();
-  variableBank.forEach((element) => {element.updatePressedState();});
+  
+  // variableBank.forEach((element) => {element.updatePressedState();});
+  variableBank.forEach( (element) => {
+    element.forEach( (draggableBox) => {
+      draggableBox.updatePressedState();
+    });
+  });
 }
 
 function calculateMinMax(table){

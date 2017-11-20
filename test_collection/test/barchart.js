@@ -17,7 +17,6 @@ class BarChart {
       this._colors = colors;
     }
 
-
     for (let i = 0; i < this._nrOfVariables; i++) {
       // this._minValues[i] = 0;
       // this._maxValues[i] = 10;

@@ -18,15 +18,15 @@ class ScatterPlot{
       print('two few columns in data. Need at least two for z and y axis');
       throw 'two few columns in data. Need at least two for z and y axis';
     }
-    this._xVariable = 0;
-    this._yVariable = 1;
+    this._xVariable = undefined;
+    this._yVariable = undefined;
     this._sizeVariable = undefined;
     this._colorVariable = undefined;
 
-    this._previousXVariable = undefined;
-    this._previousYVariable = undefined;
-    this._previousSizeVariable = undefined;
-    this._previousColorVariable = undefined;
+    this._previousXVariable = -1;
+    this._previousYVariable = -1;
+    this._previousSizeVariable = -1;
+    this._previousColorVariable = -1;
 
     this._currentData = {scaledXValue: [], scaledYValue: [], scaledSizeValue: [], scaledColorValue: []};
     
@@ -76,14 +76,17 @@ class ScatterPlot{
     this._previousSizeVariable = this._sizeVariable;
     this._previousColorVariable = this._colorVariable;
 
+    if(this._xVariable === undefined || this._yVariable === undefined){
+      print('Invalid variableset');
+      this._resetRenderer();
+      // this._drawAxis();
+      //throw('x or y axis can\'t be undefined');
+      return;
+    }
+
     for (var i = 0; i < this._inData.length; i++) {
       let currentRow = this._inData[i];
-
-      if(this._xVariable === undefined || this._yVariable === undefined){
-        print('x or y axis can\'t be undefined');
-        //throw('x or y axis can\'t be undefined');
-        return;
-      }
+      
       let scaledXValue = this._getScaledValue(currentRow, this._xVariable, this._width);
       this._currentData.scaledXValue[i] = scaledXValue;
       let scaledYValue = this._getScaledValue(currentRow, this._yVariable, this._height);
@@ -127,6 +130,21 @@ class ScatterPlot{
     this.legendDropZones[3].draw(legendPosition.x, legendPosition.y);
   }
 
+  _resetRenderer(){
+    let x = this._margin;
+    let y = -this._margin + this._renderer.height;
+    this._renderer.clear();
+    this._renderer.push();
+    this._renderer.translate(x, y);
+    this._renderer.fill(255);
+    this._renderer.textAlign(CENTER, CENTER);
+    this._renderer.text('Välj åtminstone x och y', this._width/2, -this._height/2);
+    this._renderer.stroke(230);
+    this._renderer.line(0, 0, this._width, 0);
+    this._renderer.line(0, 0, 0, -this._height);
+    this._renderer.pop();
+  }
+
   _drawToRenderer(){
     let x = this._margin;
     let y = -this._margin + this._renderer.height;
@@ -136,6 +154,10 @@ class ScatterPlot{
     this._renderer.translate(x, y);
     if(this._currentData.scaledXValue === undefined || this._currentData.scaledYValue == undefined){
       print('x or y axis can\'t be undefined');
+      this._renderer.stroke(230);
+      this._renderer.line(0, 0, this._width, 0);
+      this._renderer.line(0, 0, 0, -this._height);
+      this._renderer.pop();
       return;
     }
     for (var i = 0; i < this._currentData.scaledXValue.length; i++) {
