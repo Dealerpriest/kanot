@@ -19,6 +19,10 @@ class DataPlayer {
     this._playHeadPosition = this._timestamps[0];
   }
 
+  getCurrentTime(){
+    return this._playHeadPosition;
+  }
+
   getCurrentIndex(){
     return this._currentIndex;
   }

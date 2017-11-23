@@ -1,7 +1,9 @@
 class LineChart {
-  constructor(labels, data, minValues, maxValues, orientation, x, y, colors){
+  // The data array is expected to have timestamp in first column
+  constructor(labels, units, data, minValues, maxValues, orientation, x, y, colors){
     this._nrOfVariables = labels.length;
     this._labels = labels;
+    this._units = units;
     
     this._orientation = orientation;
     this._position = undefined;
@@ -24,6 +26,10 @@ class LineChart {
     // }
     this._currentIndex = 0;
 
+    // Let's initalize the first timestamp
+    this._currentTimestamp = data[0][0];
+    this._timeWindow = 1000;
+
     this._includedValuesBehind = 100;
     this._includedValuesInFront = 20;
     this._data = data;
@@ -34,8 +40,17 @@ class LineChart {
     }
   }
 
+  setStampAndIndex(stamp, index){
+    this.setCurrentTimestamp(stamp);
+    this.setCurrentIndex(index);
+  }
+
   setCurrentIndex(index){
     this._currentIndex = index;
+  }
+
+  setCurrentTimestamp(ms){
+    this._currentTimestamp = ms;
   }
 
   draw(x, y){
@@ -45,30 +60,77 @@ class LineChart {
     noFill();
 
     let nrOfDataPoints = this._includedValuesBehind + this._includedValuesInFront;
-    let currentRowXPos = this._position.x +this._includedValuesBehind / nrOfDataPoints * this._width;
+    // let currentRowXPos = this._position.x +this._includedValuesBehind / nrOfDataPoints * this._width;
     stroke(foregroundColor);
-    line(currentRowXPos, this._position.y, currentRowXPos, this._position.y - this._height);
+    // line(currentRowXPos, this._position.y, currentRowXPos, this._position.y - this._height);
 
     push();
-    stroke(255, 0, 255);
     for (let i = 0; i < this._activeVariables.length; i++) {
       let column = this._activeVariables[i];
       stroke(this._colors[column]);
       strokeWeight(2);
       beginShape();
-      for (let row = -this._includedValuesBehind; row < this._includedValuesInFront; row++) {
-        let dataIndex = this._currentIndex + row;
-        if(dataIndex >= 0 && dataIndex < this._data.length){
-          let value = this._data[dataIndex][column];
-          // let isCurrent = (dataIndex == this._currentIndex);
 
-          let scaledValue = map(value, this._minValues[column], this._maxValues[column], 0, this._height);
-          vertex(this._position.x + (row + this._includedValuesBehind) * this._width / nrOfDataPoints, this._position.y - scaledValue);
-        }
+
+      // really fucked up method to find the oldest timestamp we should use in this draw pass
+      // This is because we want to draw the oldest values first. Becuase we can keep values to next vertex if undefined.
+      let drawnIndex = this._currentIndex;
+      let valueFound = false;
+      while(drawnIndex > 0 && (!valueFound || this._data[drawnIndex-1][0] > this._currentTimestamp - this._timeWindow)){
+        drawnIndex--;
+        valueFound = this._data[drawnIndex][column] !== undefined;
       }
+
+      let value = this._data[drawnIndex][column];
+      // print(drawnIndex);
+      // while(drawnIndex >= 0 && this._data[drawnIndex][0] > this._currentTimestamp - this._timeWindow){
+      for(;drawnIndex <= this._currentIndex; drawnIndex++){
+        let ts = this._data[drawnIndex][0];
+        let x = map(ts, this._currentTimestamp - this._timeWindow, this._currentTimestamp, 0, this._width);
+        x = constrain(x, 0, this._width);
+
+        if(this._data[drawnIndex][column] !== undefined){
+          value = this._data[drawnIndex][column];
+        }
+
+        let scaledValue = map(value, this._minValues[column], this._maxValues[column], 0, this._height);
+        vertex(this._position.x + x, this._position.y - scaledValue);
+        // print(drawnIndex);
+
+        // --drawnIndex;
+      }
+      // print(drawnIndex);
+      // let dataIndex = this._currentIndex + row;
+      // if(dataIndex >= 0 && dataIndex < this._data.length){
+      //   let value = this._data[dataIndex][column];
+      //   let isCurrent = (dataIndex == this._currentIndex);
+
+      //   let scaledValue = map(value, this._minValues[column], this._maxValues[column], 0, this._height);
+      //   vertex(this._position.x + (row + this._includedValuesBehind) * this._width / nrOfDataPoints, this._position.y - scaledValue);
+      // }
       endShape();
     }
     pop();
+
+    // push();
+    // for (let i = 0; i < this._activeVariables.length; i++) {
+    //   let column = this._activeVariables[i];
+    //   stroke(this._colors[column]);
+    //   strokeWeight(2);
+    //   beginShape();
+    //   for (let row = -this._includedValuesBehind; row < this._includedValuesInFront; row++) {
+    //     let dataIndex = this._currentIndex + row;
+    //     if(dataIndex >= 0 && dataIndex < this._data.length){
+    //       let value = this._data[dataIndex][column];
+    //       // let isCurrent = (dataIndex == this._currentIndex);
+
+    //       let scaledValue = map(value, this._minValues[column], this._maxValues[column], 0, this._height);
+    //       vertex(this._position.x + (row + this._includedValuesBehind) * this._width / nrOfDataPoints, this._position.y - scaledValue);
+    //     }
+    //   }
+    //   endShape();
+    // }
+    // pop();
 
     this._drawAxis(this._position.x, this._position.y);
 
@@ -89,6 +151,7 @@ class LineChart {
 
     for (let i = 0; i < this._activeVariables.length; i++) {
       let column = this._activeVariables[i];
+      let unit = this._units[column];
       let variableValueSpan = (this._maxValues[column] - this._minValues[column]);
       let axisXPosition = x + i * this._width;
       let tickLength = 5;
@@ -107,6 +170,8 @@ class LineChart {
         line(axisXPosition - tickLength, currentYPos, axisXPosition, currentYPos);
       }
       line(axisXPosition, y, axisXPosition, y - this._height);
+      textAlign(CENTER, BOTTOM);
+      text(unit, axisXPosition, y - this._height - 10);
     }
     
     // for(let variable = 0; i < this._activeLabels.length; i++){

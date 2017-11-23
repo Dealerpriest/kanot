@@ -1,10 +1,11 @@
 /* globals DropZone */
 class ScatterPlot{
-  constructor(labels, data, minValues, maxValues){
+  constructor(labels, units, data, minValues, maxValues){
     //data parameters
     this.legendDropZones = [];
     this._nrOfVariables = labels.length;
     this._labels = labels;
+    this._units = units;
     this._inData = data;
     this._currentData = {};
     this._minValues = minValues;
@@ -93,14 +94,14 @@ class ScatterPlot{
       this._currentData.scaledYValue[i] = scaledYValue;
 
       if(this._sizeVariable !== undefined){
-        let scaledSizeValue = this._getScaledValue(currentRow, this._sizeVariable, this._maxRadius);
+        let scaledSizeValue = this._getScaledValue(currentRow, this._sizeVariable, this._maxRadius) + 4;
         this._currentData.scaledSizeValue[i] = scaledSizeValue;
       }else{
         this._currentData.scaledSizeValue = [];
       }
 
       if(this._colorVariable !== undefined){
-        let scaledColorValue = this._getScaledValue(currentRow, this._colorVariable, 255);
+        let scaledColorValue = this._getScaledValue(currentRow, this._colorVariable, 180);
         this._currentData.scaledColorValue[i] = scaledColorValue;
       }else{
         this._currentData.scaledColorValue = [];
@@ -114,20 +115,54 @@ class ScatterPlot{
     // this._drawToRenderer(5, 5);
     image(this._renderer, x - this._margin, y - this._height - this._margin);
 
-    textAlign(RIGHT, TOP);
-    let legendPosition = createVector(x + this._width + this._margin, y - this._height);
+    // draw unit descriptions
+    // push();
+    // noStroke();
+    textAlign(LEFT, CENTER);
+    if(this._xVariable !== undefined){
+      text(this._units[this._xVariable], x + this._width + 15, y);
+    }
+    
+    textAlign(CENTER, BOTTOM);
+    if(this._yVariable !== undefined){
+      text(this._units[this._yVariable], x, y - this._height - 15);
+    }
+    // pop();
+
+    this._drawLegend(x, y);
+  }
+
+  _drawLegend(x, y){
+    textAlign(RIGHT, CENTER);
+    let legendPosition = createVector(x + this._width + this._margin, y - this._height + 20);
     let verticalIncrement = 70;
-    text('X:', legendPosition.x, legendPosition.y);
+    let dropZoneVerticalOffset = 15;
+    text('X: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[0].draw(legendPosition.x, legendPosition.y);
     legendPosition.y += verticalIncrement;
-    text('Y:', legendPosition.x, legendPosition.y);
+    text('Y: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[1].draw(legendPosition.x, legendPosition.y);
     legendPosition.y += verticalIncrement;
-    text('Size:', legendPosition.x, legendPosition.y);
+    text('Size: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[2].draw(legendPosition.x, legendPosition.y);
     legendPosition.y += verticalIncrement;
-    text('Color:', legendPosition.x, legendPosition.y);
+    text('Color: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[3].draw(legendPosition.x, legendPosition.y);
+    legendPosition.y += 31;
+    this._drawGradientBox(legendPosition.x, legendPosition.y, 100, 10, 0, 180);
+  }
+
+  _drawGradientBox(x, y, width, height, startHue, endHue){
+    push();
+    for(let i = 0; i < width; i++){
+      let lerpValue = map(i, 0, width, 0, 1.0);
+      let hue = lerp(startHue, endHue, lerpValue);
+      colorMode(HSB);
+      stroke(hue, 100, 100);
+      // noStroke();
+      line(x + i, y, x + i, y + height);
+    }
+    pop();
   }
 
   _resetRenderer(){
@@ -154,17 +189,39 @@ class ScatterPlot{
     this._renderer.translate(x, y);
     if(this._currentData.scaledXValue === undefined || this._currentData.scaledYValue == undefined){
       print('x or y axis can\'t be undefined');
-      this._renderer.stroke(230);
-      this._renderer.line(0, 0, this._width, 0);
-      this._renderer.line(0, 0, 0, -this._height);
-      this._renderer.pop();
+      // this._renderer.stroke(230);
+      // this._renderer.line(0, 0, this._width, 0);
+      // this._renderer.line(0, 0, 0, -this._height);
+      // this._renderer.pop();
       return;
     }
+
     for (var i = 0; i < this._currentData.scaledXValue.length; i++) {
+      let skipCurrentPoint = false;
+      let radius;
       if(this._currentData.scaledSizeValue.length !== 0){
-        this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], this._currentData.scaledSizeValue[i]);
+        // this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], this._currentData.scaledSizeValue[i]);
+        skipCurrentPoint = skipCurrentPoint || this._currentData.scaledSizeValue[i] === undefined;
+        radius = this._currentData.scaledSizeValue[i];
       }else{
-        this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], 5);
+        // this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], 5);
+        radius = 5;
+      }
+
+      // let colorValue;
+      if(this._currentData.scaledColorValue.length !== 0){
+        skipCurrentPoint = skipCurrentPoint || this._currentData.scaledColorValue[i] === undefined;
+        // colorValue = this._currentData.scaledColorValue;
+        this._renderer.colorMode(HSB);
+        this._renderer.fill(this._currentData.scaledColorValue[i], 100, 100);
+      }
+
+      skipCurrentPoint = skipCurrentPoint || this._currentData.scaledXValue[i] === undefined || this._currentData.scaledYValue[i] === undefined;
+
+      if(!skipCurrentPoint){
+        // this._renderer.colorMode(HSB);
+        // this._renderer.fill(130, 100, 100);
+        this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], radius);
       }
     }
 
@@ -173,13 +230,15 @@ class ScatterPlot{
   }
 
   _getScaledValue(row, column, scaledMax){
-    if(column === undefined){
+    if(row[column] === undefined){
       return undefined;
     }
     return map(row[column], this._minValues[column], this._maxValues[column], 0, scaledMax);
   }
 
   _drawAxis(){
+    this._renderer.colorMode(RGB);
+    this._renderer.fill(255);
     this._renderer.stroke(230);
     this._renderer.textAlign(RIGHT, CENTER);
     let yTickIncrement = this._height / this._nrOfTicksY;

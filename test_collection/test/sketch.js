@@ -3,6 +3,7 @@ let tableDeltaVPos;
 let tableDeltaVNeg;
 let minValues = [];
 let maxValues = [];
+let units = [];
 let currentRow;
 let variableColors = [];
 
@@ -43,6 +44,7 @@ function setup() {
 
   table.addColumn(tableDeltaVPos.columns[1]);
   table.addColumn(tableDeltaVNeg.columns[1]);
+  table.addColumn('seconds');
 
   let deltaVPosRowIndex = 0;
   // let currentDeltaVPosRow = tableDeltaVPos.getRow(deltaVPosRowIndex);
@@ -51,6 +53,10 @@ function setup() {
   // let currentDeltaVNegRow = tableDeltaVNeg.getRow(deltaVNegRowIndex);
   for(let mainTableRowIndex = 0; mainTableRowIndex < table.getRowCount(); mainTableRowIndex++){
     let currentMainRow = table.getRow(mainTableRowIndex);
+
+    //create column with seconds
+    let second = (Number(currentMainRow.get('t')) - Number(table.get(0, 't')))/1000;
+    currentMainRow.set('seconds', second); 
     
     let value = undefined
     if(deltaVPosRowIndex < tableDeltaVPos.getRowCount() && Number(currentMainRow.get('t')) === Number(tableDeltaVPos.get(deltaVPosRowIndex, 't')) ){
@@ -74,6 +80,20 @@ function setup() {
 
   print('finished adding values to table');
 
+  units = [
+    'milliseconds',
+    'g',
+    'g',
+    'g',
+    'degrees/s',
+    'degrees/s',
+    'degrees/s',
+    'm/s',
+    'deltaV+',
+    'deltaV-',
+    'seconds'
+  ];
+
   //after we've given the timestamps to the dataplayer, we remove them from our table.
   // table.removeColumn('t');
   //Alos remove some other fucked up stuff (the other timestamps)
@@ -88,8 +108,8 @@ function setup() {
   table.removeColumn('gpsTsp');
   table.removeColumn('phoneTstmp');
 
-  table.removeColumn('DeltaVPos');
-  table.removeColumn('DeltaVNeg');
+  // table.removeColumn('DeltaVPos');
+  // table.removeColumn('DeltaVNeg');
 
   print(table.columns);
   calculateMinMax(table);
@@ -118,24 +138,24 @@ function setup() {
   let variableBankStartX = 500;
   let xSpacing = 15;
   let variableBankPosition = createVector(variableBankStartX, yPositionRibbon + 5);
-  for (let i = 0; i < table.columns.length; i++) {
+  for (let i = 1; i < table.columns.length; i++) {
     let name = table.columns[i];
     variableBank[i] = [];
-    variableBank[i][0] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, variableColors[i]);
+    variableBank[i][0] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, variableColors[i-1]);
     variableBankPosition.x += (variableBank[i][0]._width + xSpacing);
   }
 
-  lineChart = new LineChart(table.columns, table.getArray(), minValues, maxValues, 'UP', 100, 450, variableColors);
-  lineChart.turnOnColumn(1);
+  lineChart = new LineChart(table.columns, units, table.getArray(), minValues, maxValues, 'UP', 100, 450, variableColors);
+  // lineChart.turnOnColumn(0);
   lineChart.turnOnColumn(2);
-  lineChart.turnOnColumn(6);
-
-
+  lineChart.turnOnColumn(7);
+  // lineChart.turnOnColumn(8);
+  
   spiderChart = new SpiderChart(table.columns, minValues, maxValues);
   barChart = new BarChart(table.columns, 10, 'UP', 100, minValues, maxValues, variableColors);
   
 
-  scatterPlot = new ScatterPlot(table.columns, table.getArray(), minValues, maxValues);
+  scatterPlot = new ScatterPlot(table.columns, units, table.getArray(), minValues, maxValues);
 
 
   
@@ -174,7 +194,8 @@ function draw() {
     spiderChart.setValues(currentRow);
 
     barChart.setValues(currentRow);
-    lineChart.setCurrentIndex(dataPlayer.getCurrentIndex());
+    // lineChart.setCurrentIndex(dataPlayer.getCurrentIndex());
+    lineChart.setStampAndIndex(dataPlayer.getCurrentTime(), dataPlayer.getCurrentIndex());
 
     // scatterPlot.update();
 
@@ -209,7 +230,6 @@ function draw() {
   if(DraggableTextBox.mostRecentlyDragged !== undefined){
     for (var i = 0; i < scatterPlot.legendDropZones.length; i++) {
       DraggableTextBox.mostRecentlyDragged.checkIfInDropZone(scatterPlot.legendDropZones[i]);
-
     }
   }
 
@@ -217,12 +237,12 @@ function draw() {
   playSpeed.draw();
 
   scatterPlot.update();
-  scatterPlot.draw(800, 450);
+  scatterPlot.draw(600, 450);
 
   lineChart.draw();
 
-  barChart.draw(200, 600);
-  spiderChart.draw(600, 600);
+  // barChart.draw(200, 600);
+  // spiderChart.draw(600, 600);
 }
 
 function doubleClicked(){
@@ -273,7 +293,19 @@ function calculateMinMax(table){
   for (let i = 0; i < table.columns.length; i++) {
     let values = table.getColumn(i);
     
-    minValues[i] = Math.min( ...values );
-    maxValues[i] = Math.max( ...values );
+    // minValues[i] = Math.min( ...values );
+    minValues[i] = values.reduce((a, b) => {
+      let _a = isNaN(a) ? Infinity : a;
+      let _b = isNaN(b) ? Infinity : b;
+      return Math.min(_a, _b);
+    });
+
+
+    // maxValues[i] = Math.max( ...values );
+    maxValues[i] = values.reduce((a, b) => {
+      let _a = isNaN(a) ? -Infinity : a;
+      let _b = isNaN(b) ? -Infinity : b;
+      return Math.max(_a, _b);
+    });
   }
 }
