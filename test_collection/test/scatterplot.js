@@ -263,6 +263,11 @@ class ScatterPlot{
       this._renderer.stroke(axisColorValue, 50);
       this._renderer.line(0, currentYPos, this._width, currentYPos);
     }
+    if(this._minValues[this._yVariable] < 0){
+      let yZeroPos = map(0, this._minValues[this._yVariable], this._maxValues[this._yVariable], 0, -this._height);
+      this._renderer.stroke(axisColorValue);
+      this._renderer.line(0, yZeroPos, this._width, yZeroPos);
+    }
 
     this._renderer.textAlign(CENTER, TOP);
     let xTickIncrement = this._width / this._nrOfTicksX;
