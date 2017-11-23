@@ -17,6 +17,10 @@ let barChart;
 let lineChart;
 let scatterPlot;
 
+let agencyFont;
+let centuryGothicFont;
+let daggerSquareFont;
+let daggerSquareBoldFont;
 let foregroundColor;// = color(255);
 // let detailColor = color(220);
 
@@ -35,9 +39,15 @@ function preload(){
   table = loadTable('data/kanot.csv', 'csv', 'header');
   tableDeltaVPos = loadTable('data/kanotdeltavpos.csv', 'csv', 'header');
   tableDeltaVNeg = loadTable('data/kanotdeltavneg.csv', 'csv', 'header');
+  agencyFont = loadFont('assets/Agency.ttf');
+  centuryGothicFont = loadFont('assets/centuryGothic.ttf');
+  daggerSquareFont = loadFont('assets/daggersquare.otf');
+  daggerSquareBoldFont = loadFont('assets/daggersquare oblique.otf');
 }
 
 function setup() {
+  textFont(centuryGothicFont);
+
   createCanvas(windowWidth, windowHeight);
   let timestampsAsStrings = table.getColumn('t');
   dataPlayer = new DataPlayer(timestampsAsStrings.map(Number));
@@ -155,7 +165,7 @@ function setup() {
   barChart = new BarChart(table.columns, 10, 'UP', 100, minValues, maxValues, variableColors);
   
 
-  scatterPlot = new ScatterPlot(table.columns, units, table.getArray(), minValues, maxValues);
+  scatterPlot = new ScatterPlot(table.columns, units, table.getArray(), minValues, maxValues, 100, 600, 800, 400);
 
 
   
@@ -171,7 +181,7 @@ function setup() {
 }
 
 function draw() {
-  background(20);
+  background(50);
   noFill();
   stroke(foregroundColor);
 
@@ -237,9 +247,9 @@ function draw() {
   playSpeed.draw();
 
   scatterPlot.update();
-  scatterPlot.draw(600, 450);
+  scatterPlot.draw();
 
-  lineChart.draw();
+  // lineChart.draw();
 
   // barChart.draw(200, 600);
   // spiderChart.draw(600, 600);

@@ -1,6 +1,6 @@
 /* globals DropZone */
 class ScatterPlot{
-  constructor(labels, units, data, minValues, maxValues){
+  constructor(labels, units, data, minValues, maxValues, x, y, width, height){
     //data parameters
     this.legendDropZones = [];
     this._nrOfVariables = labels.length;
@@ -36,9 +36,12 @@ class ScatterPlot{
     }
 
     //drawing parameters
-    this._maxRadius = 10;
-    this._width = 400;
-    this._height = 300;
+    this._position = createVector(x, y);
+    this._width = width;
+    this._height = height;
+    this._circleAlpha = 50;
+    let radiusFactor = 20;
+    this._maxRadius = (this._width + this._height) / 2 / (100/radiusFactor);
     this._margin = 50;
     this._nrOfTicksX = 10;
     this._nrOfTicksY = 10;
@@ -53,6 +56,7 @@ class ScatterPlot{
     this._width = width;
     this._height = height;
     this._renderer = createGraphics(this._width + 2 * this._margin, this._height + 2 * this._margin);
+    this._renderer.textFont(centuryGothicFont);
   }
 
   update(){
@@ -112,24 +116,27 @@ class ScatterPlot{
   }
 
   draw(x, y){
+    //Trying to make position optional parameter
+    if(x !== undefined && y !== undefined){this._position.set(x,y);}
+    
     // this._drawToRenderer(5, 5);
-    image(this._renderer, x - this._margin, y - this._height - this._margin);
+    image(this._renderer, this._position.x - this._margin, this._position.y - this._height - this._margin);
 
     // draw unit descriptions
     // push();
     // noStroke();
     textAlign(LEFT, CENTER);
     if(this._xVariable !== undefined){
-      text(this._units[this._xVariable], x + this._width + 15, y);
+      text(this._units[this._xVariable], this._position.x + this._width + 15, this._position.y);
     }
     
     textAlign(CENTER, BOTTOM);
     if(this._yVariable !== undefined){
-      text(this._units[this._yVariable], x, y - this._height - 15);
+      text(this._units[this._yVariable], this._position.x, this._position.y - this._height - 15);
     }
     // pop();
 
-    this._drawLegend(x, y);
+    this._drawLegend(this._position.x, this._position.y);
   }
 
   _drawLegend(x, y){
@@ -205,7 +212,7 @@ class ScatterPlot{
         radius = this._currentData.scaledSizeValue[i];
       }else{
         // this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], 5);
-        radius = 5;
+        radius = 10;
       }
 
       // let colorValue;
@@ -213,12 +220,13 @@ class ScatterPlot{
         skipCurrentPoint = skipCurrentPoint || this._currentData.scaledColorValue[i] === undefined;
         // colorValue = this._currentData.scaledColorValue;
         this._renderer.colorMode(HSB);
-        this._renderer.fill(this._currentData.scaledColorValue[i], 100, 100);
+        this._renderer.fill(this._currentData.scaledColorValue[i], 100, 100, 0.3);
       }
 
       skipCurrentPoint = skipCurrentPoint || this._currentData.scaledXValue[i] === undefined || this._currentData.scaledYValue[i] === undefined;
 
       if(!skipCurrentPoint){
+        this._renderer.stroke(255);
         // this._renderer.colorMode(HSB);
         // this._renderer.fill(130, 100, 100);
         this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], radius);
@@ -237,17 +245,23 @@ class ScatterPlot{
   }
 
   _drawAxis(){
+    let axisColorValue = 230;
     this._renderer.colorMode(RGB);
     this._renderer.fill(255);
-    this._renderer.stroke(230);
     this._renderer.textAlign(RIGHT, CENTER);
     let yTickIncrement = this._height / this._nrOfTicksY;
     let yValueIncrement = (this._maxValues[this._yVariable] - this._minValues[this._yVariable])/this._nrOfTicksY;
     for (var i = 0; i <= this._nrOfTicksY; i++) {
       let axisValue = this._minValues[this._yVariable] + i * yValueIncrement;
       let currentYPos = - i * yTickIncrement;
+      // tick stuff
+      this._renderer.noStroke();
       this._renderer.text(nfc(axisValue,2), -10, currentYPos);
+      this._renderer.stroke(axisColorValue);
       this._renderer.line(-5, currentYPos, 0, currentYPos);
+      // tick lines
+      this._renderer.stroke(axisColorValue, 50);
+      this._renderer.line(0, currentYPos, this._width, currentYPos);
     }
 
     this._renderer.textAlign(CENTER, TOP);
@@ -256,10 +270,17 @@ class ScatterPlot{
     for (var j = 0; j <= this._nrOfTicksX; j++) {
       let axisValue = this._minValues[this._xVariable] + j * xValueIncrement;
       let currentXPos = j * xTickIncrement;
+      // tick stuff
+      this._renderer.noStroke();
       this._renderer.text(nfc(axisValue,2), currentXPos, 10);
+      this._renderer.stroke(axisColorValue);
       this._renderer.line(currentXPos, 0, currentXPos, 5);
+      // tick lines
+      this._renderer.stroke(axisColorValue, 50);
+      this._renderer.line(currentXPos, 0, currentXPos, -this._height);
     }
 
+    this._renderer.stroke(axisColorValue);
     this._renderer.line(0, 0, this._width, 0);
     this._renderer.line(0, 0, 0, -this._height);
   }
