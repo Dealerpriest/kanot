@@ -36,9 +36,11 @@ let foregroundColor;// = color(255);
 let variableBank = [];
 
 function preload(){
+  // data
   table = loadTable('data/kanot.csv', 'csv', 'header');
   tableDeltaVPos = loadTable('data/kanotdeltavpos.csv', 'csv', 'header');
   tableDeltaVNeg = loadTable('data/kanotdeltavneg.csv', 'csv', 'header');
+  // fonts
   agencyFont = loadFont('assets/Agency.ttf');
   centuryGothicFont = loadFont('assets/centuryGothic.ttf');
   daggerSquareFont = loadFont('assets/daggersquare.otf');
@@ -150,8 +152,9 @@ function setup() {
   let variableBankPosition = createVector(variableBankStartX, yPositionRibbon + 5);
   for (let i = 1; i < table.columns.length; i++) {
     let name = table.columns[i];
+    let description = units[i];
     variableBank[i] = [];
-    variableBank[i][0] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, variableColors[i-1]);
+    variableBank[i][0] = new DraggableTextBox(variableBankPosition.x, variableBankPosition.y, i, name, description, variableColors[i-1]);
     variableBankPosition.x += (variableBank[i][0]._width + xSpacing);
   }
 
@@ -181,7 +184,8 @@ function setup() {
 }
 
 function draw() {
-  background(50);
+  clear();
+  background(0, 170);
   noFill();
   stroke(foregroundColor);
 
@@ -231,7 +235,8 @@ function draw() {
     }
     if(nrOfUnusedBoxes == 0){
       //ugly to use 'private' variables but fuck it.
-      boxArray.push(new DraggableTextBox(boxArray[0]._homePosition.x, boxArray[0]._homePosition.y, boxArray[0]._value, boxArray[0]._text, boxArray[0]._color));
+      // boxArray.push(new DraggableTextBox(boxArray[0]._homePosition.x, boxArray[0]._homePosition.y, boxArray[0]._value, boxArray[0]._title, boxArray[0]._description, boxArray[0]._color));
+      boxArray.push(DraggableTextBox.createBoxFrom(boxArray[0]));
     }else if(nrOfUnusedBoxes >= 2){
       boxArray.pop();
     }
