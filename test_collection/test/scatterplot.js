@@ -141,22 +141,46 @@ class ScatterPlot{
 
   _drawLegend(x, y){
     textAlign(RIGHT, CENTER);
-    let legendPosition = createVector(x + this._width + this._margin, y - this._height + 20);
-    let verticalIncrement = 70;
+    let legendPosition = createVector(x + this._width + this._margin * 2, y - this._height + this._margin/2);
+    let verticalIncrement = this._height/4;
     let dropZoneVerticalOffset = 15;
+    
     text('X: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
+    stroke(255);
+    // fill(255);
+
+    let dropHeight = 50;
+    let radius = 10;
+    arc(legendPosition.x + 0.5, legendPosition.y + 0.5, radius*2, radius*2, PI, PI+HALF_PI);
+    line(legendPosition.x - radius, legendPosition.y, legendPosition.x - radius, legendPosition.y + dropHeight);
+    arc(legendPosition.x + 0.5, legendPosition.y + dropHeight + 0.5, radius*2, radius*2, HALF_PI, PI);
+    
+    for(let i = 0; i < 80; i++){
+      stroke(255, 255 - 255 * i * 0.08);
+      line(legendPosition.x + i, legendPosition.y - radius, legendPosition.x + i + 1, legendPosition.y - radius);
+      line(legendPosition.x + i, legendPosition.y + dropHeight + radius, legendPosition.x + i + 1, legendPosition.y + dropHeight + radius);
+    }
+
     this.legendDropZones[0].draw(legendPosition.x, legendPosition.y);
-    legendPosition.y += verticalIncrement;
+    
+    legendPosition.y += verticalIncrement;    
     text('Y: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[1].draw(legendPosition.x, legendPosition.y);
+    
     legendPosition.y += verticalIncrement;
     text('Size: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[2].draw(legendPosition.x, legendPosition.y);
+    
     legendPosition.y += verticalIncrement;
     text('Color: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
     this.legendDropZones[3].draw(legendPosition.x, legendPosition.y);
+    
     legendPosition.y += 31;
     this._drawGradientBox(legendPosition.x, legendPosition.y, 100, 10, 0, 180);
+  }
+
+  _drawDropArea(x, y){
+
   }
 
   _drawGradientBox(x, y, width, height, startHue, endHue){

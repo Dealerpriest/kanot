@@ -124,7 +124,7 @@ class DraggableTextBox{
       // alphaValue = map(alphaValue, 0, 255, 0, 1.0);
     }else{
       translate(this._currentPosition.x, this._currentPosition.y);
-      if((this._hover) && !this.dropped){
+      if((this._hover) && !this.dropped && !this._snappedToDropZone){
         scale(1.2);
         translate(-this._width*0.2/2, -this._height*0.2/2);
       }
