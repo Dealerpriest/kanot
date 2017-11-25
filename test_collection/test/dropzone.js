@@ -25,12 +25,15 @@ class DropZone {
   }
 
   draw(x, y){
+    push();
     //Trying to make position optional parameter
     if(x != undefined && y != undefined){
       this.position.set(x,y);
       this.dropPosition.set(x+5,y+5);
     }
-
+    stroke(this._color);
+    noFill();
     rect(this.position.x, this.position.y, this._width, this._height);
+    pop();
   }
 }

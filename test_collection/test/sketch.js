@@ -22,6 +22,7 @@ let centuryGothicFont;
 let daggerSquareFont;
 let daggerSquareBoldFont;
 let foregroundColor;// = color(255);
+let transparent;
 // let detailColor = color(220);
 
 // let textBox;
@@ -135,19 +136,19 @@ function setup() {
 
   let yPositionRibbon = 20;
 
-  playButton = createButton('>');
-  playButton.position(100, yPositionRibbon + 2);
-  playButton.mousePressed(() => { dataPlayer.togglePlayback(); });
+  // playButton = createButton('>');
+  // playButton.position(100, yPositionRibbon + 2);
+  // playButton.mousePressed(() => { dataPlayer.togglePlayback(); });
 
-  timeSlider = createSlider(0, table.getRowCount()-1, 0, 1);
-  timeSlider.position(140, yPositionRibbon);
-  timeSlider.mousePressed(() => { dataPlayer.temporaryPause(); });
-  timeSlider.mouseReleased(() => { dataPlayer.releaseTemporaryPause(); });
+  // timeSlider = createSlider(0, table.getRowCount()-1, 0, 1);
+  // timeSlider.position(140, yPositionRibbon);
+  // timeSlider.mousePressed(() => { dataPlayer.temporaryPause(); });
+  // timeSlider.mouseReleased(() => { dataPlayer.releaseTemporaryPause(); });
 
   playSpeed = new SlidableVariable('play speed', 0, 5, 1);
   playSpeed.setPosition(300, yPositionRibbon + 1.5 * playSpeed._height);
 
-  let variableBankStartX = 500;
+  let variableBankStartX = 200;
   let xSpacing = 15;
   let variableBankPosition = createVector(variableBankStartX, yPositionRibbon + 5);
   for (let i = 1; i < table.columns.length; i++) {
@@ -179,6 +180,7 @@ function setup() {
   // dropZone2 = new DropZone(80,540, 60, 25);
   
   foregroundColor = color(255);
+  transparent = color(255, 0);
 
   print('setup finished');
 }
@@ -196,13 +198,13 @@ function draw() {
 
   dataPlayer.update();
   if(dataPlayer.playbackIsOn){
-    timeSlider.elt.value = dataPlayer.getCurrentIndex();
+    // timeSlider.elt.value = dataPlayer.getCurrentIndex();
   }else{
-    dataPlayer.setCurrentIndex(timeSlider.value());
+    // dataPlayer.setCurrentIndex(timeSlider.value());
   }
 
   if(dataPlayer.isUpdated){
-    print('dataPlayer updated');
+    // print('dataPlayer updated');
     currentRow = table.getRow(dataPlayer.getCurrentIndex()).arr;
 
     spiderChart.setValues(currentRow);
@@ -249,7 +251,7 @@ function draw() {
   }
 
   playSpeed.update();
-  playSpeed.draw();
+  // playSpeed.draw();
 
   scatterPlot.update();
   scatterPlot.draw();

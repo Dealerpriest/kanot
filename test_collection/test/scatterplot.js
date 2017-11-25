@@ -31,8 +31,10 @@ class ScatterPlot{
 
     this._currentData = {scaledXValue: [], scaledYValue: [], scaledSizeValue: [], scaledColorValue: []};
     
+    // legned area
+    this._legendDropZonesHeight = 50;
     for (var i = 0; i < 4; i++) {
-      this.legendDropZones[i] = new DropZone(0,0, 100, 30);
+      this.legendDropZones[i] = new DropZone(0,0, 100, this._legendDropZonesHeight, color(255,0));
     }
 
     //drawing parameters
@@ -40,8 +42,9 @@ class ScatterPlot{
     this._width = width;
     this._height = height;
     this._circleAlpha = 50;
-    let radiusFactor = 20;
+    let radiusFactor = 7;
     this._maxRadius = (this._width + this._height) / 2 / (100/radiusFactor);
+    this._minRadius = 5;
     this._margin = 50;
     this._nrOfTicksX = 10;
     this._nrOfTicksY = 10;
@@ -98,7 +101,7 @@ class ScatterPlot{
       this._currentData.scaledYValue[i] = scaledYValue;
 
       if(this._sizeVariable !== undefined){
-        let scaledSizeValue = this._getScaledValue(currentRow, this._sizeVariable, this._maxRadius) + 4;
+        let scaledSizeValue = this._getScaledValue(currentRow, this._sizeVariable, this._maxRadius - this._minRadius) + this._minRadius;
         this._currentData.scaledSizeValue[i] = scaledSizeValue;
       }else{
         this._currentData.scaledSizeValue = [];
@@ -136,51 +139,82 @@ class ScatterPlot{
     }
     // pop();
 
-    this._drawLegend(this._position.x, this._position.y);
+    this._drawLegend(this._position.x + this._width + this._margin * 2 + 100, this._position.y - this._height + this._margin/2);
   }
 
   _drawLegend(x, y){
+    push();
     textAlign(RIGHT, CENTER);
-    let legendPosition = createVector(x + this._width + this._margin * 2, y - this._height + this._margin/2);
+    let legendPosition = createVector(x, y);
     let verticalIncrement = this._height/4;
-    let dropZoneVerticalOffset = 15;
+    let dropZoneVerticalOffset = 22;
+    let dropZoneHorizontalOffset = 15;
     
-    text('X: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
-    stroke(255);
-    // fill(255);
+    fill(255);
+    noStroke();
+    text('X', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
 
-    let dropHeight = 50;
-    let radius = 10;
-    arc(legendPosition.x + 0.5, legendPosition.y + 0.5, radius*2, radius*2, PI, PI+HALF_PI);
-    line(legendPosition.x - radius, legendPosition.y, legendPosition.x - radius, legendPosition.y + dropHeight);
-    arc(legendPosition.x + 0.5, legendPosition.y + dropHeight + 0.5, radius*2, radius*2, HALF_PI, PI);
+    this._drawDropArea(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y, this._legendDropZonesHeight);
+    this.legendDropZones[0].draw(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y);
+    
+    legendPosition.y += verticalIncrement;    
+    text('Y', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
+    this._drawDropArea(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y, this._legendDropZonesHeight);
+    this.legendDropZones[1].draw(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y);
+    
+
+    dropZoneVerticalOffset = 0;
+    legendPosition.y += verticalIncrement;
+    text('Size', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
+    this._drawDropArea(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y, this._legendDropZonesHeight);
+    let vertOffsetEllipse = 40;
+    this.legendDropZones[2].draw(legendPosition.x  + dropZoneHorizontalOffset, legendPosition.y);
+    ellipse(legendPosition.x - 15, legendPosition.y + vertOffsetEllipse, this._maxRadius, this._maxRadius);
+    ellipse(legendPosition.x - 70, legendPosition.y + vertOffsetEllipse, this._minRadius, this._minRadius);
+    if(this._sizeVariable){
+      textAlign(CENTER, TOP);
+      text(nfc(this._maxValues[this._sizeVariable], 2), legendPosition.x - 15, legendPosition.y + vertOffsetEllipse + 25);
+      text(nfc(this._minValues[this._sizeVariable], 2), legendPosition.x - 70, legendPosition.y + vertOffsetEllipse + 25);
+    }
+
+    textAlign(RIGHT, CENTER);
+    dropZoneVerticalOffset = 15;
+    legendPosition.y += verticalIncrement;
+    text('Color', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
+    this._drawDropArea(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y, this._legendDropZonesHeight);
+    this.legendDropZones[3].draw(legendPosition.x + dropZoneHorizontalOffset, legendPosition.y);
+    
+    legendPosition.y += 31;
+    this._drawGradientBox(legendPosition.x - 70, legendPosition.y, 70, 10, 0, 180);
+    if(this._colorVariable){
+      textAlign(RIGHT, TOP);
+      text(nfc(this._maxValues[this._colorVariable], 2), legendPosition.x, legendPosition.y + 15);
+      text(nfc(this._minValues[this._colorVariable], 2), legendPosition.x - 65, legendPosition.y + 15);
+    }
+    pop();
+  }
+
+  _drawDropArea(x, y, height){
+    push();
+    let radiusTop = 15;
+    let radiusBottom = 9;
+    // let dropHeight = height;
+    let dropHeight = max( height - radiusTop - radiusBottom, 1);
+    // print(dropHeight);
+    // x += radiusTop;
+    y += radiusTop;
+    stroke(255);
+    noFill();
+    arc(x + radiusTop + 0.5, y + 0.5, radiusTop*2, radiusTop*2, PI, PI+HALF_PI);
+    line(x, y, x, y + dropHeight);
+    arc(x + radiusBottom + 0.5, y + dropHeight + 0.5, radiusBottom*2, radiusBottom*2, HALF_PI, PI);
     
     for(let i = 0; i < 80; i++){
       stroke(255, 255 - 255 * i * 0.08);
-      line(legendPosition.x + i, legendPosition.y - radius, legendPosition.x + i + 1, legendPosition.y - radius);
-      line(legendPosition.x + i, legendPosition.y + dropHeight + radius, legendPosition.x + i + 1, legendPosition.y + dropHeight + radius);
+      line(x + radiusTop + i, y - radiusTop, x + radiusTop + i + 1, y - radiusTop);
+      line(x + radiusBottom + i, y + dropHeight + radiusBottom, x + radiusBottom + i + 1, y + dropHeight + radiusBottom);
     }
-
-    this.legendDropZones[0].draw(legendPosition.x, legendPosition.y);
-    
-    legendPosition.y += verticalIncrement;    
-    text('Y: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
-    this.legendDropZones[1].draw(legendPosition.x, legendPosition.y);
-    
-    legendPosition.y += verticalIncrement;
-    text('Size: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
-    this.legendDropZones[2].draw(legendPosition.x, legendPosition.y);
-    
-    legendPosition.y += verticalIncrement;
-    text('Color: ', legendPosition.x, legendPosition.y + dropZoneVerticalOffset);
-    this.legendDropZones[3].draw(legendPosition.x, legendPosition.y);
-    
-    legendPosition.y += 31;
-    this._drawGradientBox(legendPosition.x, legendPosition.y, 100, 10, 0, 180);
-  }
-
-  _drawDropArea(x, y){
-
+    pop();
   }
 
   _drawGradientBox(x, y, width, height, startHue, endHue){
@@ -236,21 +270,22 @@ class ScatterPlot{
         radius = this._currentData.scaledSizeValue[i];
       }else{
         // this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], 5);
-        radius = 10;
+        radius = 8;
       }
 
       // let colorValue;
+      this._renderer.fill(255, 100);
       if(this._currentData.scaledColorValue.length !== 0){
         skipCurrentPoint = skipCurrentPoint || this._currentData.scaledColorValue[i] === undefined;
         // colorValue = this._currentData.scaledColorValue;
         this._renderer.colorMode(HSB);
         this._renderer.fill(this._currentData.scaledColorValue[i], 100, 100, 0.3);
+        this._renderer.stroke(255);
       }
 
       skipCurrentPoint = skipCurrentPoint || this._currentData.scaledXValue[i] === undefined || this._currentData.scaledYValue[i] === undefined;
 
       if(!skipCurrentPoint){
-        this._renderer.stroke(255);
         // this._renderer.colorMode(HSB);
         // this._renderer.fill(130, 100, 100);
         this._renderer.ellipse(this._currentData.scaledXValue[i], -this._currentData.scaledYValue[i], radius);
