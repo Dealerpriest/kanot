@@ -192,7 +192,7 @@ function draw() {
   stroke(foregroundColor);
 
   textAlign(LEFT, TOP);
-  text('fps: ' + nfc(getFrameRate(),2), 20, 23);
+  // text('fps: ' + nfc(getFrameRate(),2), 20, 23);
 
   dataPlayer.setPlaybackSpeed(playSpeed.value);
 
